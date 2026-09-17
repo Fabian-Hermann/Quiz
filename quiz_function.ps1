@@ -88,53 +88,42 @@ function FragenKategorie {
         $Fragen
     )
 	$Kategorie = $Fragen.Kategorie
-    
-
-	# $AnzahlEinzigartigeKategorie = ($Fragen | Select-Object -Unique).Count
-	# Write-Host "$($AnzahlEinzigartigeKategorie)"
-
 	$EinzigartigeKategorie = $Kategorie | Select-Object -Unique
+	Write-Host "[1] Alle Kategorieren"
+	
 	for ($i = 0; $i -lt $EinzigartigeKategorie.Count; $i++){
 		
-		Write-Host "[$($i+1)] $($EinzigartigeKategorie[$i])"
+		Write-Host "[$($i+2)] $($EinzigartigeKategorie[$i])"
 	}
 	
-	while($AusgewaehlteKategorie -gt $EinzigartigeKategorie.Count -or $AusgewaehlteKategorie.Count -eq 0){
+	while($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1 -or $AusgewaehlteKategorie -eq $null){
 			
-		if($AusgewaehlteKategorie -eq 0){
-			$EinzigartigeKategorieAuswahl = Write-Host "Waehle eine Kategorie aus:"
-				
-		}elseif ($AusgewaehlteKategorie -gt $EinzigartigeKategorie.Count){
-			Write-Host "Es kommen bald weitere Kategorien hinzu"
-		}
-		$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie: "
+		$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie aus"
+		
+			if ($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1){
+				Write-Host "Es kommen bald weitere Kategorien hinzu"
+				$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie ein"
+			}
+			elseif ($AusgewaehlteKategorie -eq 0){
+				Write-Host "Null gibt's nicht du Nulpe!" -ForegroundColor Red
+				$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie"
+			}
+
 	}
-	
-	$AusgewaehlteKategorieName = $EinzigartigeKategorie[$AusgewaehlteKategorie - 1]
-	Write-Host "Du hast folgendes gewaehlt: $($AusgewaehlteKategorieName)"
-    
-	
-	
-	#foreach($EinzigeartigeKategorie in $Fragen) 
-	
-	
-	#===========================================================
-	#$AusgewaehlteFragenKategorie = $Fragen | Group-Object -NoElement
-	
-	
-	
-	
-    $AusgewaehlteFragenKategorie = $Fragen | Where-Object {
-        $_.Kategorie -eq $($AusgewaehlteKategorieName)
-		#$Fragen.Kategorie -eq $AusgewaehlteKategorie
-    }
+	if ($AusgewaehlteKategorie -eq "1"){
+		$AusgewaehlteFragenKategorie = $Fragen
+	}
+	else {
+		$AusgewaehlteKategorieName = $EinzigartigeKategorie[$AusgewaehlteKategorie - 2]
+		Write-Host "Du hast folgendes gewaehlt: $($AusgewaehlteKategorieName)"
+		$AusgewaehlteFragenKategorie = $Fragen | Where-Object {
+			$_.Kategorie -eq $($AusgewaehlteKategorieName)
+		}
+	}
 	return $AusgewaehlteFragenKategorie
-	#Write-Host $AusgewaehlteFragenKategorie.Count
-	
-	# Write-Host $AusgewaehlteFragenKategorie
-	
-	#===========================================================
 }
+	#===========================================================
+
 
 #===============================================================
 
