@@ -10,8 +10,9 @@ do {
     Clear-Host
     Titelbild
 	$AusgewaehlteFragenKategorie = FragenKategorie $Fragen
-	
-	
+
+	Clear-Host
+	Titelbild
     $AnzahlFragen = FragenAnzahl $Fragen
 	
     Ladebalken 15
