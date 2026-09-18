@@ -184,7 +184,8 @@ function AbfrageAntwort {
         } else {
             $richtigerText = $Frage.Antworten[$Frage.RichtigeAntwort - 1]
             Write-Host "Falsch. Die richtige Antwort wäre: [$($Frage.RichtigeAntwort)] $richtigerText" -ForegroundColor Red
-            return $false
+            #return $Frage
+			return $false
         }
 
     } elseif ($Frage.Typ -eq "offeneFrage") {
@@ -196,8 +197,15 @@ function AbfrageAntwort {
             return $true
         } else {
             Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
-            return $false
+            #return $Frage
+			return $false
         }
     }
 }
 #===============================================================
+
+
+		# Ziel: Speichert falsch beantwortete Fragen in einem neuen Array
+		# Eingabe: Falsch beantwortete Fragen
+		# Ausgabe: Array mit bisher falsch beantworteten Fragen fuer AbfrageAntwort
+		# Verantwortung nicht hier: Fragen stellen, Richtig/Falsch zurückgeben
