@@ -129,9 +129,9 @@ function FragenKategorie {
 
 function Titelbild {
     # ZIEL: Titelbildschirm zur Begrüßung 
-    # EINGABE: ASCII Art 
-    # ABLAUF: 
-    # AUSGABE: 
+    # EINGABE: -
+    # ABLAUF: -
+    # AUSGABE: ASCI Art
     # VERANTWORTUNG NICHT HIER: Weder Starten noch sonstige Funktionen
 
 	Write-Host @"
@@ -140,6 +140,7 @@ function Titelbild {
  / / / / / / / /_  /
 / /_/ / /_/ / / / /_
 \___\_\__,_/_/ /___/
+
 "@ -ForegroundColor Yellow
 }
 #===============================================================
@@ -170,7 +171,7 @@ function AbfrageAntwort {
 
             if ($i + 1 -lt $Frage.Antworten.Count) {
                 $rechts = "[$($i+2)] $($Frage.Antworten[$i+1])"
-                Write-Host ("{0,-40}{1}" -f $links, $rechts)
+                Write-Host ("{0,-60}{1}" -f $links, $rechts)
             } else {
                 Write-Host $links
             }
@@ -188,17 +189,17 @@ function AbfrageAntwort {
 			return $false
         }
 
-    } elseif ($Frage.Typ -eq "offeneFrage") {
+    }  elseif ($Frage.Typ -eq "offeneFrage") {
 
         $Antwort = Read-Host "Antwort"
 
-        if ($Antwort.Trim().ToLower() -eq $Frage.RichtigeAntwort.Trim().ToLower()) {
+        if ((LevenshteinDistance $Antwort.Trim() $Frage.RichtigeAntwort.Trim()) -le 1) {
             Write-Host "Richtig" -ForegroundColor Green
             return $true
         } else {
             Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
             #return $Frage
-			return $false
+            return $false
         }
     }
 }
@@ -209,3 +210,52 @@ function AbfrageAntwort {
 		# Eingabe: Falsch beantwortete Fragen
 		# Ausgabe: Array mit bisher falsch beantworteten Fragen fuer AbfrageAntwort
 		# Verantwortung nicht hier: Fragen stellen, Richtig/Falsch zurückgeben
+
+
+
+function LevenshteinDistance {
+    # ZIEL: Berechnet die Levenshtein-Distanz zwischen zwei Zeichenketten
+    # EINGABE: Zwei Zeichenketten (Antwort und RichtigeAntwort)
+    # ABLAUF:
+    #   1. Länge der beiden Zeichenketten bestimmen
+    #   2. Eine Matrix erstellen, um die Distanzen zu speichern
+    #   3. Die Matrix initialisieren
+    #   4. Die Matrix mit den Distanzen füllen
+    #   5. Die Levenshtein-Distanz zurückgeben
+    # AUSGABE: [int] Levenshtein-Distanz
+    # VERANTWORTUNG NICHT HIER:
+    #   - Keine Validierung der Eingaben (sollte bereits vorher geschehen)
+
+    param (
+        [string]$Antwort,
+        [string]$RichtigeAntwort
+    )
+
+    $n = $Antwort.Length
+    $m = $RichtigeAntwort.Length
+
+    if ($n -eq 0) { return $m }
+    if ($m -eq 0) { return $n }
+
+    $d = New-Object 'int[,]' ($n + 1), ($m + 1)
+
+    for ($i = 0; $i -le $n; $i++) { $d[$i, 0] = $i }
+    for ($j = 0; $j -le $m; $j++) { $d[0, $j] = $j }
+
+    for ($i = 1; $i -le $n; $i++) {
+        for ($j = 1; $j -le $m; $j++) {
+            if ($Antwort[$i - 1] -eq $RichtigeAntwort[$j - 1]) {
+                $cost = 0
+            } else {
+                $cost = 1
+            }
+
+            $d[$i, $j] = [Math]::Min(
+                [Math]::Min($d[($i - 1), $j] + 1,        # Deletion
+                            $d[$i, ($j - 1)] + 1),       # Insertion
+                $d[($i - 1), ($j - 1)] + $cost)          # Substitution
+        }
+    }
+
+    return $d[$n, $m]
+}
