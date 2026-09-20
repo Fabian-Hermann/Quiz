@@ -189,17 +189,17 @@ function AbfrageAntwort {
 			return $false
         }
 
-    } elseif ($Frage.Typ -eq "offeneFrage") {
+    }  elseif ($Frage.Typ -eq "offeneFrage") {
 
         $Antwort = Read-Host "Antwort"
 
-        if ($Antwort.Trim().ToLower() -eq $Frage.RichtigeAntwort.Trim().ToLower()) {
+        if ((LevenshteinDistance $Antwort.Trim() $Frage.RichtigeAntwort.Trim()) -le 1) {
             Write-Host "Richtig" -ForegroundColor Green
             return $true
         } else {
             Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
             #return $Frage
-			return $false
+            return $false
         }
     }
 }
