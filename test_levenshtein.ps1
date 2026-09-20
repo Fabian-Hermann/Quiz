@@ -1,8 +1,7 @@
 # Funktionen laden (Dot-Sourcing: der Punkt am Anfang ist wichtig)
-
 #. (Join-Path $PSScriptRoot 'quiz_function.ps1')
-
 . "$PSScriptRoot\quiz_function.ps1"
+
 
 $tests = @(
     @{ A = 'kitten'; B = 'sitting'; Erwartet = 3 }
