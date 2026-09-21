@@ -249,11 +249,11 @@ function LevenshteinDistance {
             } else {
                 $cost = 1
             }
-
-            $d[$i, $j] = [Math]::Min(
-                [Math]::Min($d[($i - 1), $j] + 1,        # Deletion
-                            $d[$i, ($j - 1)] + 1),       # Insertion
-                $d[($i - 1), ($j - 1)] + $cost)          # Substitution
+			# berechnung der minimalen Distanz
+			$loeschen = $d[($i -1), $j] +1
+            $einfuegen = $d[$i, ($j - 1)] +1
+            $ersetzen = $d[($i - 1), ($j - 1)] + $cost
+            $d[$i, $j] = [Math]::Min([Math]::Min($loeschen, $einfuegen), $ersetzen)
         }
     }
 
