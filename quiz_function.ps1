@@ -205,14 +205,6 @@ function AbfrageAntwort {
 }
 #===============================================================
 
-
-		# Ziel: Speichert falsch beantwortete Fragen in einem neuen Array
-		# Eingabe: Falsch beantwortete Fragen
-		# Ausgabe: Array mit bisher falsch beantworteten Fragen fuer AbfrageAntwort
-		# Verantwortung nicht hier: Fragen stellen, Richtig/Falsch zurückgeben
-
-
-
 function LevenshteinDistance {
     # ZIEL: Berechnet die Levenshtein-Distanz zwischen zwei Zeichenketten
     # EINGABE: Zwei Zeichenketten (Antwort und RichtigeAntwort)
