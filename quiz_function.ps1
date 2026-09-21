@@ -31,7 +31,7 @@ function Ladebalken {
 
         Write-Host "`r[$Balken$Punkte]" -NoNewline
 
-        Start-Sleep -Milliseconds 100
+        Start-Sleep -Milliseconds 50
     }
 
     Write-Host
@@ -89,14 +89,14 @@ function FragenKategorie {
     )
 	$Kategorie = $Fragen.Kategorie
 	$EinzigartigeKategorie = $Kategorie | Select-Object -Unique
-	Write-Host "[1] Alle Kategorieren"
+	Write-Host "[1] Alle Kategorien"
 	
 	for ($i = 0; $i -lt $EinzigartigeKategorie.Count; $i++){
 		
 		Write-Host "[$($i+2)] $($EinzigartigeKategorie[$i])"
 	}
 	
-	while($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1 -or $AusgewaehlteKategorie -eq $null){
+	while($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1 -or $null -eq $AusgewaehlteKategorie){
 			
 		$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie aus"
 		
@@ -106,7 +106,7 @@ function FragenKategorie {
 			}
 			elseif ($AusgewaehlteKategorie -eq 0){
 				Write-Host "Null gibt's nicht du Nulpe!" -ForegroundColor Red
-				$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie"
+				$AusgewaehlteKategorie = Read-Host "Waehle eine VORHANDENE Kategorie!" -ForegroundColor Red
 			}
 
 	}
@@ -122,9 +122,7 @@ function FragenKategorie {
 	}
 	return $AusgewaehlteFragenKategorie
 }
-
 #===============================================================
-
 function Titelbild {
     # ZIEL: Titelbildschirm zur Begrüßung 
     # EINGABE: -
@@ -157,11 +155,13 @@ function AbfrageAntwort {
     #   - Kein Iterieren ueber mehrere Fragen (macht main.ps1 bereits per foreach)
 
     param(
-        $Frage
+        $Frage,
+        $Toleranz
     )
-
+	
+    # Write-Host "Toleranz in AbfrageAntwort: $Toleranz" -ForegroundColor Red
     Write-Host $Frage.Prompt -ForegroundColor Cyan
-
+	
     if ($Frage.Typ -eq "MultipleChoice") {
 
         for ($i = 0; $i -lt $Frage.Antworten.Count; $i += 2) {
@@ -183,15 +183,32 @@ function AbfrageAntwort {
         } else {
             $richtigerText = $Frage.Antworten[$Frage.RichtigeAntwort - 1]
             Write-Host "Falsch. Die richtige Antwort wäre: [$($Frage.RichtigeAntwort)] $richtigerText" -ForegroundColor Red
-            #return $Frage
 			return $false
         }
 
-    }  elseif ($Frage.Typ -eq "offeneFrage") {
+    } elseif ($Frage.Typ -eq "offeneFrage") {
 
+		
+		if ($Frage.RichtigeAntwort.Length -le 4){
+            $TolerierteAbweichung = 0
+            <#
+			Write-Host $Frage.RichtigeAntwort.Length
+			Write-Host $TolerierteAbweichung -ForegroundColor Yellow
+            #>
+		}else{
+			$TolerierteAbweichung = [Math]::Round($Frage.RichtigeAntwort.Length * $($Toleranz),0)
+			<#
+            Write-Host $TolerierteAbweichung -ForegroundColor Green
+			Write-Host $Toleranz -ForegroundColor Red
+			Write-Host $Frage.RichtigeAntwort.Length -ForegroundColor Green
+            #>
+		}
+		
+		
         $Antwort = Read-Host "Antwort"
-
-        if ((LevenshteinDistance $Antwort.Trim() $Frage.RichtigeAntwort.Trim()) -le 1) {
+        # Vergleich der Antwort mit der richtigen Antwort unter Verwendung der Levenshtein-Distanz
+        # Wenn die Distanz kleiner oder gleich 1 ist, wird die Antwort als richtig betrachtet
+        if ((LevenshteinDistance -Antwort $Antwort.Trim() -RichtigeAntwort $Frage.RichtigeAntwort.Trim()) -le [int]$TolerierteAbweichung) {
             Write-Host "Richtig" -ForegroundColor Green
             return $true
         } else {
@@ -220,18 +237,22 @@ function LevenshteinDistance {
         [string]$Antwort,
         [string]$RichtigeAntwort
     )
-
+    
     $n = $Antwort.Length
     $m = $RichtigeAntwort.Length
 
+    # Sonderfall: Wenn eine der beiden Zeichenketten leer ist, ist die Distanz gleich der Länge der anderen Zeichenkette
     if ($n -eq 0) { return $m }
     if ($m -eq 0) { return $n }
 
+    # Matrix zur Speicherung der Distanzen erstellen
     $d = New-Object 'int[,]' ($n + 1), ($m + 1)
 
+    # Matrix initialisieren
     for ($i = 0; $i -le $n; $i++) { $d[$i, 0] = $i }
     for ($j = 0; $j -le $m; $j++) { $d[0, $j] = $j }
 
+    # Die Matrix mit den Distanzen füllen
     for ($i = 1; $i -le $n; $i++) {
         for ($j = 1; $j -le $m; $j++) {
             if ($Antwort[$i - 1] -eq $RichtigeAntwort[$j - 1]) {
@@ -239,13 +260,36 @@ function LevenshteinDistance {
             } else {
                 $cost = 1
             }
-			# berechnung der minimalen Distanz
-			$loeschen = $d[($i -1), $j] +1
+            # Berechnung der minimalen Distanz unter Berücksichtigung von Einfügen, Löschen und Ersetzen
+            $loeschen = $d[($i -1), $j] +1
             $einfuegen = $d[$i, ($j - 1)] +1
             $ersetzen = $d[($i - 1), ($j - 1)] + $cost
             $d[$i, $j] = [Math]::Min([Math]::Min($loeschen, $einfuegen), $ersetzen)
+
         }
     }
-
+    # Die Levenshtein-Distanz zurückgeben
     return $d[$n, $m]
+}
+
+function ModusSelektion {
+    Write-Host "Welchen Modus moechtest du?`n" -ForegroundColor Cyan
+    Write-Host "[1] Einfache Abfrage" 
+    Write-Host "[2] Lernmodus (mit Erklärung der Antworten)" 
+    Write-Host "[3] Prüfungsmodus`n" 
+
+    do {
+        $ModusEingabe = Read-Host -Prompt "Geben Sie eine Zahl ein (1 - 3)"
+    } until ($ModusEingabe -in '1','2','3')
+
+    switch ($ModusEingabe) {
+        '1' { $Toleranz = 0.4 }
+        '2' { $Toleranz = 0.5 }
+        '3' { $Toleranz = 0.1 }
+    }
+    
+    return [float]$Toleranz
+
+    $Toleranz = ModusSelektion
+    Write-Host "Toleranz nach ModusSelektion: $Toleranz" -ForegroundColor Yellow
 }

@@ -1,4 +1,5 @@
 ﻿# Funktionen und Fragen mit Dot-source laden
+#. (Join-Path $PSScriptRoot 'quiz_function.ps1')
 . "$PSScriptRoot\quiz_function.ps1"
 $Fragen = . "$PSScriptRoot\fragen.ps1"
 
@@ -7,15 +8,21 @@ $Fragen = . "$PSScriptRoot\fragen.ps1"
 #-------------------
 
 do {
+
     Clear-Host
     Titelbild
 	$AusgewaehlteFragenKategorie = FragenKategorie $Fragen
-
+	#Ladebalken 10
 	Clear-Host
 	Titelbild
     $AnzahlFragen = FragenAnzahl $Fragen
+	#Ladebalken 10
+	Clear-Host
+	ModusSelektion
+	#Ladebalken 10
 	
-    Ladebalken 15
+
+
 
     $AusgewaehlteFragen = $AusgewaehlteFragenKategorie | Get-Random -Count $AnzahlFragen
 	
@@ -24,13 +31,14 @@ do {
 	do {
 		if ($Fehlerbeantworten -eq "j"){
 			$AusgewaehlteFragen = $FalscheFragen
+			$FalscheFragen = @()
 		}
 		foreach ($Frage in $AusgewaehlteFragen) {
 			Clear-Host
-			if (AbfrageAntwort $Frage) {
+			if (AbfrageAntwort -Frage $Frage -Toleranz $Toleranz) {
 				$Score++
 			} else {
-				$FalscheFragen = $FalscheFragen += $Frage
+				$FalscheFragen += $Frage
 			}
 			Read-Host "`nWeiter mit Enter"
 		}
@@ -50,4 +58,4 @@ do {
 
 } while ($NochmalSpielen -eq "j")
 
-# Write-Host "Bis zum nächsten Mal!" -ForegroundColor Cyan
+Write-Host "Bis zum nächsten Mal!" -ForegroundColor Cyan
