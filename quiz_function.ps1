@@ -37,7 +37,6 @@ function Ladebalken {
     Write-Host
 }
 #===============================================================
-
 function FragenAnzahl {
     # ZIEL: Vom Nutzer abfragen, wie viele Fragen gestellt werden sollen,
     #       und sicherstellen, dass die Anzahl gueltig ist (min. 1, max. vorhandene Fragenzahl)
@@ -82,7 +81,6 @@ function FragenAnzahl {
     return $Anzahl
 }
 #===============================================================
-
 function FragenKategorie {
     param(
         $Fragen
@@ -140,6 +138,25 @@ function Titelbild {
 "@ -ForegroundColor Yellow
 }
 #===============================================================
+function ModusSelektion {
+    Write-Host "Welchen Modus moechtest du?`n" -ForegroundColor Cyan
+    Write-Host "[1] Einfache Abfrage" 
+    Write-Host "[2] Lernmodus (mit Erklärung der Antworten)" 
+    Write-Host "[3] Prüfungsmodus`n" 
+
+    do {
+        $ModusEingabe = Read-Host -Prompt "Geben Sie eine Zahl ein (1 - 3)"
+    } until ($ModusEingabe -in '1','2','3')
+
+    switch ($ModusEingabe) {
+        '1' { $ToleranzArray = @{Toleranzwert = 0.4; isErklärung = $false} }
+        '2' { $ToleranzArray = @{Toleranzwert = 0.5; isErklärung = $true} }
+        '3' { $ToleranzArray = @{Toleranzwert = 0.1; isErklärung = $false} }
+    }
+	
+    # Write-Host "Toleranz nach ModusSelektion: $Toleranz" -ForegroundColor Yellow
+    return $ToleranzArray
+}
 
 function AbfrageAntwort {
     # ZIEL: Eine einzelne Frage stellen, Antwort vom User abfragen und mit der
@@ -155,11 +172,12 @@ function AbfrageAntwort {
     #   - Kein Iterieren ueber mehrere Fragen (macht main.ps1 bereits per foreach)
 
     param(
-        $Frage,
-        $Toleranz
+		$Toleranz,
+        $Frage
     )
-	
-    # Write-Host "Toleranz in AbfrageAntwort: $Toleranz" -ForegroundColor Red
+	# Tests zur Übergabe des Parameters $Toleranz
+	# $Toleranz = ModusSelektion
+    # Write-Host "Toleranz in AbfrageAntwort: $($Toleranz)" -ForegroundColor Red
     Write-Host $Frage.Prompt -ForegroundColor Cyan
 	
     if ($Frage.Typ -eq "MultipleChoice") {
@@ -191,29 +209,33 @@ function AbfrageAntwort {
 		
 		if ($Frage.RichtigeAntwort.Length -le 4){
             $TolerierteAbweichung = 0
-            <#
-			Write-Host $Frage.RichtigeAntwort.Length
-			Write-Host $TolerierteAbweichung -ForegroundColor Yellow
-            #>
+			
+            # Tests um die Übergabe von $Toleranz
+			# Write-Host $Frage.RichtigeAntwort.Length
+			# Write-Host $TolerierteAbweichung -ForegroundColor Yellow
+            
 		}else{
 			$TolerierteAbweichung = [Math]::Round($Frage.RichtigeAntwort.Length * $($Toleranz),0)
-			<#
-            Write-Host $TolerierteAbweichung -ForegroundColor Green
-			Write-Host $Toleranz -ForegroundColor Red
-			Write-Host $Frage.RichtigeAntwort.Length -ForegroundColor Green
-            #>
+            
+			# Tests um die Übergabe von $Toleranz
+			# Write-Host $Toleranz -ForegroundColor Red
+			# Write-Host $TolerierteAbweichung -ForegroundColor Yellow
+			# Write-Host $Frage.RichtigeAntwort.Length -ForegroundColor Green
+            
 		}
 		
 		
         $Antwort = Read-Host "Antwort"
         # Vergleich der Antwort mit der richtigen Antwort unter Verwendung der Levenshtein-Distanz
         # Wenn die Distanz kleiner oder gleich 1 ist, wird die Antwort als richtig betrachtet
-        if ((LevenshteinDistance -Antwort $Antwort.Trim() -RichtigeAntwort $Frage.RichtigeAntwort.Trim()) -le [int]$TolerierteAbweichung) {
-            Write-Host "Richtig" -ForegroundColor Green
+        if($Antwort.Trim() -eq $RichtigeAntwort ){
+			Write-Host "Richtig" -ForegroundColor Green
+		}
+		elseif ((LevenshteinDistance -Antwort $Antwort.Trim() -RichtigeAntwort $Frage.RichtigeAntwort.Trim()) -le [int]$TolerierteAbweichung) {
+            Write-Host "Richtig aber mit Tipfehler $($Frage.RichtigeAntwort)" -ForegroundColor Yellow
             return $true
         } else {
             Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
-            #return $Frage
             return $false
         }
     }
@@ -272,24 +294,4 @@ function LevenshteinDistance {
     return $d[$n, $m]
 }
 
-function ModusSelektion {
-    Write-Host "Welchen Modus moechtest du?`n" -ForegroundColor Cyan
-    Write-Host "[1] Einfache Abfrage" 
-    Write-Host "[2] Lernmodus (mit Erklärung der Antworten)" 
-    Write-Host "[3] Prüfungsmodus`n" 
-
-    do {
-        $ModusEingabe = Read-Host -Prompt "Geben Sie eine Zahl ein (1 - 3)"
-    } until ($ModusEingabe -in '1','2','3')
-
-    switch ($ModusEingabe) {
-        '1' { $Toleranz = 0.4 }
-        '2' { $Toleranz = 0.5 }
-        '3' { $Toleranz = 0.1 }
-    }
-    
-    return [float]$Toleranz
-
-    $Toleranz = ModusSelektion
-    Write-Host "Toleranz nach ModusSelektion: $Toleranz" -ForegroundColor Yellow
-}
+#===============================================================

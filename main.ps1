@@ -8,7 +8,7 @@ $Fragen = . "$PSScriptRoot\fragen.ps1"
 #-------------------
 
 do {
-
+	# --- Start ---
     Clear-Host
     Titelbild
 	$AusgewaehlteFragenKategorie = FragenKategorie $Fragen
@@ -18,12 +18,11 @@ do {
     $AnzahlFragen = FragenAnzahl $Fragen
 	#Ladebalken 10
 	Clear-Host
-	ModusSelektion
-	#Ladebalken 10
+	$a = ModusSelektion
+	$Toleranz = $a.Toleranzwert
+	Ladebalken 10
 	
-
-
-
+	
     $AusgewaehlteFragen = $AusgewaehlteFragenKategorie | Get-Random -Count $AnzahlFragen
 	
     $Score = 0
@@ -35,7 +34,7 @@ do {
 		}
 		foreach ($Frage in $AusgewaehlteFragen) {
 			Clear-Host
-			if (AbfrageAntwort -Frage $Frage -Toleranz $Toleranz) {
+			if (AbfrageAntwort -Frage $Frage, -Toleranz $Toleranz) {
 				$Score++
 			} else {
 				$FalscheFragen += $Frage
