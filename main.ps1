@@ -1,7 +1,8 @@
 ﻿# Funktionen und Fragen mit Dot-source laden
 #. (Join-Path $PSScriptRoot 'quiz_function.ps1')
 . "$PSScriptRoot\quiz_function.ps1"
-$Fragen = . "$PSScriptRoot\fragen.ps1"
+#$Fragen = . "$PSScriptRoot\fragen.ps1"
+$Fragen = Import-Csv "$PSScriptRoot\Daten\fragen.csv" -Delimiter ";"
 
 #-------------------
 # Hauptschleife
@@ -11,16 +12,23 @@ do {
 	# --- Start ---
     Clear-Host
     Titelbild
+	# Write-Host $Fragen.GetType()
+	
+	#$AusgewaehlteFragenKategorieXXX = FragenKategorie $Fragen
+	#[array]$AusgewaehlteFragenKategorie = $AusgewaehlteFragenKategorieXXX
+	#Write-Host $AusgewaehlteFragenKategorie.getType() -ForegroundColor yellow
 	$AusgewaehlteFragenKategorie = FragenKategorie $Fragen
-	#Ladebalken 10
+	# Ladebalken 20
 	Clear-Host
+
 	Titelbild
     $AnzahlFragen = FragenAnzahl $Fragen
-	#Ladebalken 10
+	# Ladebalken 20
 	Clear-Host
-	$a = ModusSelektion
-	$Toleranz = $a.Toleranzwert
-	Ladebalken 10
+	$ModusArray = ModusSelektion
+	$Toleranz = $ModusArray.Toleranzwert
+	$Erklärung = $ModusArray.isErklärung
+	# Ladebalken 20
 	
 	
     $AusgewaehlteFragen = $AusgewaehlteFragenKategorie | Get-Random -Count $AnzahlFragen
@@ -33,8 +41,11 @@ do {
 			$FalscheFragen = @()
 		}
 		foreach ($Frage in $AusgewaehlteFragen) {
+			$Frage.ID = [int]$Frage.ID
+    		$Frage.RichtigeAntwort = [int]$Frage.RichtigeAntwort
+    		$Frage.Antworten = $Frage.Antworten -split '\|'
 			Clear-Host
-			if (AbfrageAntwort -Frage $Frage, -Toleranz $Toleranz) {
+			if (AbfrageAntwort -Frage $Frage -Toleranz $Toleranz) {
 				$Score++
 			} else {
 				$FalscheFragen += $Frage

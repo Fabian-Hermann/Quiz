@@ -86,9 +86,12 @@ function FragenKategorie {
         $Fragen
     )
 	$Kategorie = $Fragen.Kategorie
-	$EinzigartigeKategorie = $Kategorie | Select-Object -Unique
+	# Write-Host $Kategorie
+	$EinzigartigeKategorie = $Fragen.Kategorie | Select-Object -Unique
+	Write-Host $EinzigartigeKategorie
 	Write-Host "[1] Alle Kategorien"
-	
+    # Tests um CSV Implimentierung zu prüfen
+	# Write-Host $($EinzigartigeKategorie) -ForegroundColor Red
 	for ($i = 0; $i -lt $EinzigartigeKategorie.Count; $i++){
 		
 		Write-Host "[$($i+2)] $($EinzigartigeKategorie[$i])"
@@ -123,8 +126,6 @@ function FragenKategorie {
 #===============================================================
 function Titelbild {
     # ZIEL: Titelbildschirm zur Begrüßung 
-    # EINGABE: -
-    # ABLAUF: -
     # AUSGABE: ASCI Art
     # VERANTWORTUNG NICHT HIER: Weder Starten noch sonstige Funktionen
 
@@ -178,14 +179,43 @@ function AbfrageAntwort {
 	# Tests zur Übergabe des Parameters $Toleranz
 	# $Toleranz = ModusSelektion
     # Write-Host "Toleranz in AbfrageAntwort: $($Toleranz)" -ForegroundColor Red
-    Write-Host $Frage.Prompt -ForegroundColor Cyan
-	
-    if ($Frage.Typ -eq "MultipleChoice") {
+<#
+    # Debug-Ausgaben
+    Write-Host "==  DEBUG  ==" -ForegroundColor Yellow
+    Write-Host "ID: [$($Frage.ID)]" -ForegroundColor Red
+    Write-Host "Typ: [$($Frage.Typ)]" -ForegroundColor Red
+    Write-Host "Frage: [$($Frage.Frage)]" -ForegroundColor Red
+    Write-Host "Antworten: [$($Frage.Antworten)]" -ForegroundColor Red
+    Write-Host "Typ von Antworten: [$($Frage.Antworten.GetType())]" -ForegroundColor Red
+    Write-Host "RichtigeAntwort: [$($Frage.RichtigeAntwort)]" -ForegroundColor Red
+    Write-Host "-------------------------"
+#>
+    Write-Host $($Frage.Frage) -ForegroundColor Cyan
 
+
+
+    # MultipleChoice
+    if ($Frage.Typ -eq "MultipleChoice") {
+	# Test CSV Fragen
+    # Write-Host $Frage.Typ.getType() -ForegroundColor Yellow
+	# Write-Host "Ausgabe: $($Frage.getType())" -ForegroundColor Red
+		
+    # Tests um das Array aus der CSV Datei zu prüfen
+    # Write-Host "Ausgabe $Frage.Frage: $($Frage.Frage)" -ForegroundColor Red
+
+    # Write-Host "Die Richtige Antwort wäre: [$($Frage.Antworten[1])]"
+    
+        # Ausgabe der Antworten in zwei Spalten
         for ($i = 0; $i -lt $Frage.Antworten.Count; $i += 2) {
+            #$links = "[$($i+1)] $($Frage.Antworten[$i])"
+
+            #Korrectur Chat
             $links = "[$($i+1)] $($Frage.Antworten[$i])"
 
             if ($i + 1 -lt $Frage.Antworten.Count) {
+                #$rechts = "[$($i+2)] $($Frage.Antworten[$i+1])"
+
+                #Korrektur Chat
                 $rechts = "[$($i+2)] $($Frage.Antworten[$i+1])"
                 Write-Host ("{0,-60}{1}" -f $links, $rechts)
             } else {
@@ -199,13 +229,53 @@ function AbfrageAntwort {
             Write-Host "Richtig" -ForegroundColor Green
             return $true
         } else {
-            $richtigerText = $Frage.Antworten[$Frage.RichtigeAntwort - 1]
-            Write-Host "Falsch. Die richtige Antwort wäre: [$($Frage.RichtigeAntwort)] $richtigerText" -ForegroundColor Red
-			return $false
+
+
+            # [array]$ArrayRichtigeAntworten = $Frage.Antworten -split '\|'
+            # Write-Host "Antworten[0]: [$($Frage.Antworten[0])]"
+            # Write-Host "Antworten[1]: [$($Frage.Antworten[1])]"
+            # Write-Host "Antworten[2]: [$($Frage.Antworten[2])]"
+            # Write-Host "Antworten[3]: [$($Frage.Antworten[3])]"
+            
+            $BerechneterIndex = $Frage.RichtigeAntwort - 1
+            # Write-Host "Berechneter Index: [$BerechneterIndex]"
+            $ArrrayRichtigeAntworten = @($Frage.Antworten)
+            Write-Host "Falsch. Die Richtige Antwort ist: $($ArrrayRichtigeAntworten[$BerechneterIndex])" -ForegroundColor Yellow
+            # Write-Host "$ArrayRichtigeAntworten[$($Frage.RichtigeAntwort) - 1]" -ForegroundColor Red
+            
+            # Write-Host "Typ von Antworten: [$($Frage.Antworten.GetType().name)]" -ForegroundColor Red
+            #Write-Host "Die richtige Antwort ist: $($ArrayRichtigeAntworten[$Frage.RichtigeAntwort - 1])" -ForegroundColor Yellow
+            #Write-Host "Falsch. Die richtige Antwort wäre: $($ArrayRichtigeAntworten[$Frage.RichtigeAntwort - 1]) $AusgabeRichtigeAntwort" -ForegroundColor Red
+
+            <# Debug-Ausgaben
+            Write-Host "Falsch. Die richtige Antwort wäre: [$($Frage.Antworten[$Frage.RichtigeAntwort - 1])] $richtigerText" -ForegroundColor Red
+			Write-Host "Die richtige Antwort ist: $($Frage.Antworten[$Frage.RichtigeAntwort - 1])" -ForegroundColor Yellow #2
+            Write-Host "Die richtige Antwort ist: $Frage.Antworten[$Frage.RichtigeAntwort - 1]" -ForegroundColor Yellow # ganzes Fragen Array ausgeben
+            Write-Host "Die richtige Antwort ist: $($Frage.Antworten[$($Frage.RichtigeAntwort.Count - 1)])" -ForegroundColor Red
+            #>
+            
+            Write-Host "`nDie Erklärung: $($Frage.Erklärung)"
+            return $false
         }
 
-    } elseif ($Frage.Typ -eq "offeneFrage") {
+    } 
+    
 
+    # Offene Frage
+    elseif ($Frage.Typ -eq "offeneFrage") {
+	
+        # Write-Host "Frage.RichtigeAntwort: [$($Frage.RichtigeAntwort)]"
+        # Write-Host "Frage Typ: [$($Frage.Typ)]" 
+
+    <#
+	# Test CSV Fragen
+	Write-Host "Ausgabe Fragen.getType(): $($Frage.getType())" -ForegroundColor Blue
+	Write-Host "Ausgabe $Frage.Frage: $($Frage.Frage)" -ForegroundColor Red
+	Write-Host "Ausgabe $Frage.Fragen: $($Frage.Fragen)`n" -ForegroundColor Yellow
+	Write-Host "Ausgabe $Frage.Kategorie: $($Frage.Kategorie)" -ForegroundColor Red
+	Write-Host "Ausgabe $Fragen.Antworten: $($Fragen.Antworten)" -ForegroundColor Yellow
+	Write-Host "Ausgabe $Fragen.RichtigeAntwort: $($Fragen.RichtigeAntwort)" -ForegroundColor Yellow
+    #>
 		
 		if ($Frage.RichtigeAntwort.Length -le 4){
             $TolerierteAbweichung = 0
@@ -216,7 +286,6 @@ function AbfrageAntwort {
             
 		}else{
 			$TolerierteAbweichung = [Math]::Round($Frage.RichtigeAntwort.Length * $($Toleranz),0)
-            
 			# Tests um die Übergabe von $Toleranz
 			# Write-Host $Toleranz -ForegroundColor Red
 			# Write-Host $TolerierteAbweichung -ForegroundColor Yellow
@@ -225,17 +294,27 @@ function AbfrageAntwort {
 		}
 		
 		
-        $Antwort = Read-Host "Antwort"
+        $AntwortEingabe = Read-Host "Antwort"
         # Vergleich der Antwort mit der richtigen Antwort unter Verwendung der Levenshtein-Distanz
         # Wenn die Distanz kleiner oder gleich 1 ist, wird die Antwort als richtig betrachtet
-        if($Antwort.Trim() -eq $RichtigeAntwort ){
+
+        <# Debug-Ausgaben
+        Write-Host "AntwortEingabe: [$AntwortEingabe]" -ForegroundColor Yellow
+        Write-Host "RichtigeAntwort: [$RichtigeAntwort]" -ForegroundColor Yellow
+        Write-Host "Länge Eingabe: $($AntwortEingabe.Length)" -ForegroundColor Yellow
+        Write-Host "Länge richtig: $($RichtigeAntwort.Length)" -ForegroundColor Yellow
+        #>
+        if($AntwortEingabe.Trim() -eq $Frage.RichtigeAntwort ){
 			Write-Host "Richtig" -ForegroundColor Green
 		}
-		elseif ((LevenshteinDistance -Antwort $Antwort.Trim() -RichtigeAntwort $Frage.RichtigeAntwort.Trim()) -le [int]$TolerierteAbweichung) {
-            Write-Host "Richtig aber mit Tipfehler $($Frage.RichtigeAntwort)" -ForegroundColor Yellow
+		elseif ((LevenshteinDistance -Antwort $AntwortEingabe.Trim() -RichtigeAntwort $Frage.RichtigeAntwort.Trim()) -le [int]$TolerierteAbweichung) {
+            Write-Host "Das lassen wir nochmal gelten. Richtig waere: $($Frage.RichtigeAntwort)" -ForegroundColor Yellow
             return $true
         } else {
-            Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
+            Write-Host "Falsch. Die richtige Antwort wäre: $Frage.Antworten[$($Frage.RichtigeAntwort)-1]" -ForegroundColor Red
+                if ($Erklärung){
+                    Write-Host "`nDie Erklärung lautet: $($Frage.Erklärung)"
+                }
             return $false
         }
     }
