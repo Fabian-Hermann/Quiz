@@ -180,7 +180,7 @@ function AbfrageAntwort {
 	# $Toleranz = ModusSelektion
     # Write-Host "Toleranz in AbfrageAntwort: $($Toleranz)" -ForegroundColor Red
 
-    <# Debug-Ausgaben
+    <#Debug-Ausgaben
     Write-Host "==  DEBUG  ==" -ForegroundColor Yellow
     Write-Host "ID: [$($Frage.ID)]" -ForegroundColor Red
     Write-Host "Typ: [$($Frage.Typ)]" -ForegroundColor Red
@@ -204,6 +204,10 @@ function AbfrageAntwort {
     # Write-Host "Ausgabe $Frage.Frage: $($Frage.Frage)" -ForegroundColor Red
 
     # Write-Host "Die Richtige Antwort wäre: [$($Frage.Antworten[1])]"
+	
+	# Variabelen:
+	 $BerechneterIndex = $Frage.RichtigeAntwort - 1
+	 $ArrrayRichtigeAntworten = @($Frage.Antworten)
     
         # Ausgabe der Antworten in zwei Spalten
         for ($i = 0; $i -lt $Frage.Antworten.Count; $i += 2) {
@@ -221,6 +225,7 @@ function AbfrageAntwort {
 		
 		# Antwort sterilisieren 
 		$AntwortMultipleChoiceFrage = Read-Host "`nDeine Wahl [Nummer]"
+		<#
 		if ($AntwortMultipleChoiceFrage -match '^\d+$') {
 			
 		}
@@ -228,16 +233,16 @@ function AbfrageAntwort {
 			Write-Host "Ungültige Eingabe!"
 			$AntwortMultipleChoiceFrage = Read-Host "Antwort"
 		}
-        
+        #>
 		# Vergleich Antwort zur richtigen Antwort
-        if ($AntwortMultipleChoiceFrage -eq $Frage.RichtigeAntwort) {
+        if ($AntwortMultipleChoiceFrage -eq $Frage.RichtigeAntwort -or $($ArrrayRichtigeAntworten[$BerechneterIndex]) -eq $AntwortMultipleChoiceFrage) {
             Write-Host "Richtig" -ForegroundColor Green
             return $true
         } else {
             
-            $BerechneterIndex = $Frage.RichtigeAntwort - 1
+           
             # Write-Host "Berechneter Index: [$BerechneterIndex]"
-            $ArrrayRichtigeAntworten = @($Frage.Antworten)
+            
             Write-Host "Falsch. Die Richtige Antwort ist: $($ArrrayRichtigeAntworten[$BerechneterIndex])" -ForegroundColor Red
             # Write-Host "$ArrayRichtigeAntworten[$($Frage.RichtigeAntwort) - 1]" -ForegroundColor Red
             
