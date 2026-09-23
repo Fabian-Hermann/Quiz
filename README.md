@@ -15,10 +15,12 @@ Das Projekt dient als Lernprojekt, um grundlegende Programmierkonzepte praktisch
   * Offene Fragen
 * Benutzereingaben überprüfen
 * Levenshtein Distanz
+*  Score
+* Anpassung der Maximalen Abweichung der Levenshtein Distanz in Relation der länge der richtigen Antwort
 
 # Geplante Funktionen
-* Score
-* Anpassung der Maximalen Abweichung der Levenshtein Distanz in Relation der länge der richtigen Antwort
+* 50/50 Joker
+* Ladebalken in Diskofarben
 
 # Technologie
 
