@@ -12,13 +12,9 @@ do {
 	# --- Start ---
     Clear-Host
     Titelbild
-	# Write-Host $Fragen.GetType()
 	
-	#$AusgewaehlteFragenKategorieXXX = FragenKategorie $Fragen
-	#[array]$AusgewaehlteFragenKategorie = $AusgewaehlteFragenKategorieXXX
-	#Write-Host $AusgewaehlteFragenKategorie.getType() -ForegroundColor yellow
 	$AusgewaehlteFragenKategorie = FragenKategorie $Fragen
-	# Ladebalken 20
+	Ladebalken 20
 	Clear-Host
 
 	Titelbild
@@ -28,7 +24,6 @@ do {
 	$ModusArray = ModusSelektion
 	$Toleranz = $ModusArray.Toleranzwert
 	$Erklärung = $ModusArray.isErklärung
-	# Ladebalken 20
 	
 	
     $AusgewaehlteFragen = $AusgewaehlteFragenKategorie | Get-Random -Count $AnzahlFragen
@@ -42,7 +37,6 @@ do {
 		}
 		foreach ($Frage in $AusgewaehlteFragen) {
 			$Frage.ID = [int]$Frage.ID
-    		$Frage.RichtigeAntwort = [int]$Frage.RichtigeAntwort
     		$Frage.Antworten = $Frage.Antworten -split '\|'
 			Clear-Host
 			if (AbfrageAntwort -Frage $Frage -Toleranz $Toleranz) {
