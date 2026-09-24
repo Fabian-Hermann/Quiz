@@ -1,138 +1,67 @@
 ﻿# ==============================================================
-# quiz_functions.ps1
+# quiz_function.ps1
 # Sammlung aller Funktionen fuer das PowerShell-Quiz in main.ps1
 # ==============================================================
 
+Set-StrictMode -Version Latest
 
-function Ladebalken {
-    # NAME: Ladebalken
-    # ZIEL: Für UX sollen das Quiz nicht direkt starten sonden ein wenig warten
-    # EINGABE: -
-    # ABLAUF:
-    #   1. Die Länge soll angegeben werden aus wie viel Symbolen der Ladebalken besteht 
-    #   2. Länge wird inerhalb des Blocks weitergegeben
-    #   3. Für jedes Element wird dies wiederholt bis die Anzahl der symbole erreicht wird
-    #   4. Symbol fuer den vollen und leeren Balken festlegen 
-    #   5. Schleife soll sich "erneuern" und updaten mit "`r" und "-NoNewLine"
-    # WIEDERHOLUNGEN:
-    #   - Solange bis alle Symbole von leer zu voll gewächselt haben
-    # AUSGABE: [###.....]
-    # VERANTWORTUNG NICHT HIER:
-    #   - Nicht für den Ablauf davor oder Danach verantwortlich
-
+#===============================================================
+function Show-Ladebalken {
+    <#
+    .SYNOPSIS
+        Zeigt einen einfachen textbasierten Ladebalken an.
+    .PARAMETER Laenge
+        Anzahl der Segmente, aus denen der Balken besteht.
+    #>
+    [CmdletBinding()]
     param(
         [int]$Laenge = 15
     )
 
     for ($i = 1; $i -le $Laenge; $i++) {
+        $Balken = "#" * $i
+        $Punkte = "." * ($Laenge - $i)
+        Write-Host "`r[$Balken$Punkte]" -NoNewline
+        Start-Sleep -Milliseconds 30
+    }
+    Write-Host ""
+}
 
+#===============================================================
+function Show-DiscoLadebalken {
+    <#
+    .SYNOPSIS
+        Ladebalken mit umlaufenden Farben ("Disco-Effekt").
+    .PARAMETER Laenge
+        Anzahl der Segmente, aus denen der Balken besteht.
+    #>
+    [CmdletBinding()]
+    param(
+        [int]$Laenge = 15
+    )
+
+    $Farben = @("Yellow", "Cyan", "Green", "Red")
+    $FarbIndex = 0
+
+    for ($i = 1; $i -le $Laenge; $i++) {
         $Balken = "#" * $i
         $Punkte = "." * ($Laenge - $i)
 
-        Write-Host "`r[$Balken$Punkte]" -NoNewline
+        Write-Host "`r[$Balken$Punkte]" -ForegroundColor $Farben[$FarbIndex] -NoNewline
+        Start-Sleep -Milliseconds 50
 
-        Start-Sleep -Milliseconds 100
+        $FarbIndex = ($FarbIndex + 1) % $Farben.Count
     }
-
-    Write-Host
-}
-#===============================================================
-
-function FragenAnzahl {
-    # ZIEL: Vom Nutzer abfragen, wie viele Fragen gestellt werden sollen,
-    #       und sicherstellen, dass die Anzahl gueltig ist (min. 1, max. vorhandene Fragenzahl)
-    # EINGABE: $Fragen - Array aller verfuegbaren Fragen
-    # ABLAUF:
-    #   1. Anzahl der verfuegbaren Fragen anzeigen
-    #   2. Nutzereingabe abfragen
-    #   3. Eingabe validieren, bei ungueltiger Eingabe erneut abfragen
-    #   4. Bestaetigung anzeigen
-    #   5. Gueltige Anzahl zurueckgeben
-    # ENTSCHEIDUNGEN:
-    #   - Ist Anzahl -eq 0? -> Fehlermeldung "mindestens 1"
-    #   - Ist Anzahl -gt Fragen.Count? -> Fehlermeldung "Maximum ueberschritten"
-    # WIEDERHOLUNGEN:
-    #   - Solange die Eingabe ungueltig ist (0 oder groesser als Fragen.Count), erneut abfragen
-    # AUSGABE: [uint16] gueltige Anzahl gewuenschter Fragen
-    # VERANTWORTUNG NICHT HIER:
-    #   - Kein Stellen der Fragen selbst
-    #   - Keine Auswahl, WELCHE Fragen genommen werden (nur wie viele)
-    #   - Kein Laden der Fragen-Datenstruktur
-
-
-    param(
-        $Fragen
-    )
-    Write-Host "Anzahl Fragen im Array: $($AusgewaehlteFragenKategorie.Count)"  
-    [uint16]$Anzahl = Read-Host "Wie viel Fragen moechtest du?"
-
-    while ($Anzahl -gt $AusgewaehlteFragenKategorie.Count -or $Anzahl -eq 0) {
-		
-		if ($Anzahl -eq 0){
-			Write-Host "Die Anzahl muss mindestens 1 sein." -ForegroundColor Yellow
-		}
-		elseif ($Anzahl -gt $AusgewaehlteFragenKategorie.Count) {
-			Write-Host "Das momentane Maximum ist: $($AusgewaehlteFragenKategorie.Count)" -ForegroundColor Yellow
-		}
-
-        [uint16]$Anzahl = Read-Host "Wie viel Fragen moechtest du?"
-    }
-
-    Write-Host "Du hast ausgewaelhlt: $($Anzahl)" 
-    return $Anzahl
-}
-#===============================================================
-
-function FragenKategorie {
-    param(
-        $Fragen
-    )
-	$Kategorie = $Fragen.Kategorie
-	$EinzigartigeKategorie = $Kategorie | Select-Object -Unique
-	Write-Host "[1] Alle Kategorieren"
-	
-	for ($i = 0; $i -lt $EinzigartigeKategorie.Count; $i++){
-		
-		Write-Host "[$($i+2)] $($EinzigartigeKategorie[$i])"
-	}
-	
-	while($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1 -or $AusgewaehlteKategorie -eq $null){
-			
-		$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie aus"
-		
-			if ($AusgewaehlteKategorie -gt $($EinzigartigeKategorie.Count)+1){
-				Write-Host "Es kommen bald weitere Kategorien hinzu"
-				$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie ein"
-			}
-			elseif ($AusgewaehlteKategorie -eq 0){
-				Write-Host "Null gibt's nicht du Nulpe!" -ForegroundColor Red
-				$AusgewaehlteKategorie = Read-Host "Waehle eine Kategorie"
-			}
-
-	}
-	if ($AusgewaehlteKategorie -eq "1"){
-		$AusgewaehlteFragenKategorie = $Fragen
-	}
-	else {
-		$AusgewaehlteKategorieName = $EinzigartigeKategorie[$AusgewaehlteKategorie - 2]
-		Write-Host "Du hast folgendes gewaehlt: $($AusgewaehlteKategorieName)"
-		$AusgewaehlteFragenKategorie = $Fragen | Where-Object {
-			$_.Kategorie -eq $($AusgewaehlteKategorieName)
-		}
-	}
-	return $AusgewaehlteFragenKategorie
+    Write-Host ""
 }
 
 #===============================================================
-
-function Titelbild {
-    # ZIEL: Titelbildschirm zur Begrüßung 
-    # EINGABE: -
-    # ABLAUF: -
-    # AUSGABE: ASCI Art
-    # VERANTWORTUNG NICHT HIER: Weder Starten noch sonstige Funktionen
-
-	Write-Host @"
+function Show-Titelbild {
+    <#
+    .SYNOPSIS
+        Zeigt den ASCII-Art-Titelbildschirm an.
+    #>
+    Write-Host @"
    ____        _    
   / __ \__  __(_)___
  / / / / / / / /_  /
@@ -141,81 +70,310 @@ function Titelbild {
 
 "@ -ForegroundColor Yellow
 }
+
 #===============================================================
-
-function AbfrageAntwort {
-    # ZIEL: Eine einzelne Frage stellen, Antwort vom User abfragen und mit der
-    #       gespeicherten richtigen Antwort vergleichen
-    # EINGABE: $Frage - EIN Fragen-Objekt (nicht das ganze Array!)
-    # ABLAUF:
-    #   1. Frage-Text anzeigen
-    #   2. Je nach Typ (MultipleChoice / offeneFrage) Eingabe abfragen
-    #   3. Eingabe mit RichtigeAntwort vergleichen
-    #   4. Rueckmeldung ausgeben
-    # AUSGABE: [bool] $true bei richtiger, $false bei falscher Antwort
-    # VERANTWORTUNG NICHT HIER:
-    #   - Kein Iterieren ueber mehrere Fragen (macht main.ps1 bereits per foreach)
-
+function Select-FragenKategorie {
+    <#
+    .SYNOPSIS
+        Laesst den Nutzer eine Kategorie aus dem Fragenpool waehlen.
+    .PARAMETER Fragen
+        Array aller verfuegbaren Fragen.
+    .OUTPUTS
+        Teilmenge von $Fragen, die zur gewaehlten Kategorie gehoert.
+    #>
+    [CmdletBinding()]
     param(
-        $Frage
+        [Parameter(Mandatory)]
+        [array]$Fragen
     )
 
-    Write-Host $Frage.Prompt -ForegroundColor Cyan
+    $EinzigartigeKategorien = $Fragen.Kategorie | Select-Object -Unique
 
-    if ($Frage.Typ -eq "MultipleChoice") {
+    Write-Host "[1] Alle Kategorien"
+    for ($i = 0; $i -lt $EinzigartigeKategorien.Count; $i++) {
+        Write-Host "[$($i + 2)] $($EinzigartigeKategorien[$i])"
+    }
 
-        for ($i = 0; $i -lt $Frage.Antworten.Count; $i += 2) {
-            $links = "[$($i+1)] $($Frage.Antworten[$i])"
+    $MaxIndex = $EinzigartigeKategorien.Count + 1
+    $AusgewaehlteKategorie = $null
 
-            if ($i + 1 -lt $Frage.Antworten.Count) {
-                $rechts = "[$($i+2)] $($Frage.Antworten[$i+1])"
-                Write-Host ("{0,-60}{1}" -f $links, $rechts)
-            } else {
-                Write-Host $links
-            }
+    while ($null -eq $AusgewaehlteKategorie) {
+        $Eingabe = Read-Host "Waehle eine Kategorie aus"
+
+        if ($Eingabe -notmatch '^\d+$') {
+            Write-Host "Bitte eine Zahl eingeben." -ForegroundColor Red
+            continue
         }
 
-        [int]$Auswahl = Read-Host "Deine Wahl (Nummer)"
+        $EingabeZahl = [int]$Eingabe
 
-        if ($Auswahl -eq $Frage.RichtigeAntwort) {
-            Write-Host "Richtig" -ForegroundColor Green
-            return $true
-        } else {
-            $richtigerText = $Frage.Antworten[$Frage.RichtigeAntwort - 1]
-            Write-Host "Falsch. Die richtige Antwort wäre: [$($Frage.RichtigeAntwort)] $richtigerText" -ForegroundColor Red
-            #return $Frage
-			return $false
+        if ($EingabeZahl -lt 1 -or $EingabeZahl -gt $MaxIndex) {
+            Write-Host "Bitte eine Zahl zwischen 1 und $MaxIndex eingeben." -ForegroundColor Red
+            continue
         }
 
-    }  elseif ($Frage.Typ -eq "offeneFrage") {
+        $AusgewaehlteKategorie = $EingabeZahl
+    }
 
-        $Antwort = Read-Host "Antwort"
+    if ($AusgewaehlteKategorie -eq 1) {
+        return $Fragen
+    }
 
-        if ((LevenshteinDistance $Antwort.Trim() $Frage.RichtigeAntwort.Trim()) -le 1) {
-            Write-Host "Richtig" -ForegroundColor Green
-            return $true
-        } else {
-            Write-Host "Falsch. Die richtige Antwort wäre: $($Frage.RichtigeAntwort)" -ForegroundColor Red
-            #return $Frage
+    $Kategorieindex = $AusgewaehlteKategorie - 2
+    $KategorieName = $EinzigartigeKategorien[$Kategorieindex]
+    Write-Host "Du hast folgendes gewaehlt: $KategorieName"
+
+    return $Fragen | Where-Object { $_.Kategorie -eq $KategorieName }
+}
+
+#===============================================================
+function Get-FragenAnzahl {
+    <#
+    .SYNOPSIS
+        Fragt den Nutzer, wie viele Fragen gestellt werden sollen.
+    .PARAMETER Fragen
+        Bereits nach Kategorie gefilterte Fragen, deren Anzahl die Obergrenze bildet.
+    .OUTPUTS
+        [int] Gueltige Anzahl gewuenschter Fragen (1..Fragen.Count).
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [array]$Fragen
+    )
+
+    $Maximum = $Fragen.Count
+    Write-Host "Anzahl verfuegbarer Fragen: $Maximum"
+
+    $Anzahl = 0
+    do {
+        $Eingabe = Read-Host "Wie viele Fragen moechtest du?"
+
+        if ($Eingabe -notmatch '^\d+$') {
+            Write-Host "Bitte eine gueltige Zahl eingeben." -ForegroundColor Yellow
+            continue
+        }
+
+        $Anzahl = [int]$Eingabe
+
+        if ($Anzahl -eq 0) {
+            Write-Host "Die Anzahl muss mindestens 1 sein." -ForegroundColor Yellow
+        }
+        elseif ($Anzahl -gt $Maximum) {
+            Write-Host "Das momentane Maximum ist: $Maximum" -ForegroundColor Yellow
+        }
+    } while ($Anzahl -eq 0 -or $Anzahl -gt $Maximum)
+
+    Write-Host "Du hast ausgewaehlt: $Anzahl"
+    return $Anzahl
+}
+
+#===============================================================
+function Select-Modus {
+    <#
+    .SYNOPSIS
+        Laesst den Nutzer den Spielmodus waehlen und liefert die zugehoerigen Einstellungen.
+    .OUTPUTS
+        [hashtable] mit Toleranzwert, HatJoker, ZeigeErklaerung.
+    #>
+    [CmdletBinding()]
+    param()
+
+    Write-Host "Welchen Modus moechtest du?`n" -ForegroundColor Cyan
+    Write-Host "[1] Einfache Abfrage"
+    Write-Host "[2] Lernmodus (mit Erklaerung der Antworten)"
+    Write-Host "[3] Pruefungsmodus`n"
+
+    do {
+        $Eingabe = Read-Host "Geben Sie eine Zahl ein (1 - 3)"
+    } until ($Eingabe -in '1', '2', '3')
+
+    switch ($Eingabe) {
+        '1' { return @{ Toleranzwert = 0.4; HatJoker = $true;  ZeigeErklaerung = $false } }
+        '2' { return @{ Toleranzwert = 0.5; HatJoker = $false; ZeigeErklaerung = $true } }
+        '3' { return @{ Toleranzwert = 0.1; HatJoker = $false; ZeigeErklaerung = $false } }
+    }
+}
+
+#===============================================================
+function Test-Antwort {
+    <#
+    .SYNOPSIS
+        Stellt eine einzelne Frage, fragt die Antwort ab und prueft sie.
+    .PARAMETER Frage
+        Ein einzelnes Fragen-Objekt (nicht das ganze Array).
+    .PARAMETER Toleranz
+        Toleranzfaktor fuer offene Fragen (Levenshtein-Distanz).
+    .PARAMETER ZeigeErklaerung
+        Ob bei falscher Antwort eine Erklaerung angezeigt werden soll.
+    .PARAMETER AktuelleFrageNummer
+        Laufende Nummer der Frage, nur fuer die Anzeige.
+    .OUTPUTS
+        [bool] $true bei richtiger, $false bei falscher Antwort.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        $Frage,
+
+        [double]$Toleranz = 0,
+
+        [bool]$ZeigeErklaerung = $false,
+
+        [int]$AktuelleFrageNummer = 1,
+		
+		[bool]$HatJoker = $false
+    )
+
+    Write-Host "$AktuelleFrageNummer. $($Frage.Frage)" -ForegroundColor Cyan
+
+    switch ($Frage.Typ) {
+        "MultipleChoice" {
+            return Test-MultipleChoiceAntwort -Frage $Frage -ZeigeErklaerung $ZeigeErklaerung -HatJoker $HatJoker -AktuelleFrageNummer $AktuelleFrageNummer
+        }
+        "offeneFrage" {
+            return Test-OffeneAntwort -Frage $Frage -Toleranz $Toleranz -ZeigeErklaerung $ZeigeErklaerung
+        }
+        default {
+            Write-Warning "Unbekannter Fragetyp '$($Frage.Typ)' - Frage wird uebersprungen."
             return $false
         }
     }
 }
+
 #===============================================================
+function Test-MultipleChoiceAntwort {
+    <#
+    .SYNOPSIS
+        Zeigt eine MultipleChoice-Frage an und prueft die Antwort.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        $Frage,
+		$HatJoker,
+        [bool]$ZeigeErklaerung = $false,
+		$AktuelleFrageNummer
+    )
 
-function LevenshteinDistance {
-    # ZIEL: Berechnet die Levenshtein-Distanz zwischen zwei Zeichenketten
-    # EINGABE: Zwei Zeichenketten (Antwort und RichtigeAntwort)
-    # ABLAUF:
-    #   1. Länge der beiden Zeichenketten bestimmen
-    #   2. Eine Matrix erstellen, um die Distanzen zu speichern
-    #   3. Die Matrix initialisieren
-    #   4. Die Matrix mit den Distanzen füllen
-    #   5. Die Levenshtein-Distanz zurückgeben
-    # AUSGABE: [int] Levenshtein-Distanz
-    # VERANTWORTUNG NICHT HIER:
-    #   - Keine Validierung der Eingaben (sollte bereits vorher geschehen)
+    $Antworten = @($Frage.Antworten)
+    $RichtigerIndex = [int]$Frage.RichtigeAntwort - 1
+	
+    # Ausgabe der Antworten in zwei Spalten
+    for ($i = 0; $i -lt $Antworten.Count; $i += 2) {
+        $Links = "[$($i + 1)] $($Antworten[$i])"
 
+        if ($i + 1 -lt $Antworten.Count) {
+            $Rechts = "[$($i + 2)] $($Antworten[$i + 1])"
+            Write-Host ("{0,-50}{1}" -f $Links, $Rechts)
+        }
+        else {
+            Write-Host $Links
+        }
+    }
+
+    $Eingabe = Read-Host "`nDeine Wahl"
+    $RichtigeAntwortText = $Antworten[$RichtigerIndex]
+	
+	if ($Antworten.Count -gt 2 -and $HatJoker){
+		if ($Eingabe -eq "Joker"){
+			[array]$AusschlussIndex = @(0, 1, 2, 3)
+			$AusschlussIndex = $($AusschlussIndex -ne $RichtigerIndex)
+			$Zwischenindex = $($Ausschlussindex | Get-Random -Count 1)
+			$AusschlussIndex = $($AusschlussIndex -ne $Zwischenindex)
+			$Antworten[$($Ausschlussindex[0])] = ""
+			$Antworten[$($Ausschlussindex[1])] = ""
+			Clear-Host
+			Write-Host "$AktuelleFrageNummer. $($Frage.Frage)" -ForegroundColor Cyan
+			for ($i = 0; $i -lt $Antworten.Count; $i += 2) {
+				$Links = "[$($i + 1)] $($Antworten[$i])"
+
+				if ($i + 1 -lt $Antworten.Count) {
+					$Rechts = "[$($i + 2)] $($Antworten[$i + 1])"
+					Write-Host ("{0,-50}{1}" -f $Links, $Rechts)
+				}
+				else {
+					Write-Host $Links
+				}
+			}
+		}
+		$HatJoker = $false
+		$Eingabe = Read-Host "`nDeine Wahl"
+	}
+
+	
+    $IstRichtig = ($Eingabe -eq $Frage.RichtigeAntwort) -or ($Eingabe -eq $RichtigeAntwortText)
+
+    if ($IstRichtig) {
+        Write-Host "Richtig" -ForegroundColor Green
+        return $true
+    }
+
+    Write-Host "Falsch. Die richtige Antwort ist: $RichtigeAntwortText" -ForegroundColor Red
+    if ($ZeigeErklaerung) {
+        Write-Host "`nDie Erklaerung: $($Frage.Erklaerung)"
+    }
+    return $false
+}
+
+#===============================================================
+function Test-OffeneAntwort {
+    <#
+    .SYNOPSIS
+        Zeigt eine offene Frage an und prueft die Antwort per Levenshtein-Toleranz.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        $Frage,
+
+        [double]$Toleranz = 0,
+
+        [bool]$ZeigeErklaerung = $false
+    )
+
+    $Eingabe = (Read-Host "Gib deine Antwort ein").Trim()
+    $RichtigeAntwort = $Frage.RichtigeAntwort.Trim()
+
+    if ($Eingabe -eq $RichtigeAntwort) {
+        Write-Host "Richtig" -ForegroundColor Green
+        return $true
+    }
+
+    $TolerierteAbweichung = if ($RichtigeAntwort.Length -le 4) {
+        0
+    }
+    else {
+        [Math]::Round($RichtigeAntwort.Length * $Toleranz, 0)
+    }
+
+    $Distanz = Get-LevenshteinDistance -Antwort $Eingabe -RichtigeAntwort $RichtigeAntwort
+
+    if ($Distanz -le [int]$TolerierteAbweichung) {
+        Write-Host "Das lassen wir nochmal gelten. Richtig waere: $RichtigeAntwort" -ForegroundColor Yellow
+        return $true
+    }
+
+    Write-Host "Falsch. Die richtige Antwort waere: $RichtigeAntwort" -ForegroundColor Red
+    if ($ZeigeErklaerung) {
+        Write-Host "`nDie Erklaerung: $($Frage.Erklaerung)"
+    }
+    return $false
+}
+
+#===============================================================
+function Get-LevenshteinDistance {
+    <#
+    .SYNOPSIS
+        Berechnet die Levenshtein-Distanz zwischen zwei Zeichenketten.
+    .PARAMETER Antwort
+        Die vom Nutzer eingegebene Zeichenkette.
+    .PARAMETER RichtigeAntwort
+        Die als richtig hinterlegte Zeichenkette.
+    .OUTPUTS
+        [int] Levenshtein-Distanz.
+    #>
+    [CmdletBinding()]
     param (
         [string]$Antwort,
         [string]$RichtigeAntwort
@@ -234,18 +392,21 @@ function LevenshteinDistance {
 
     for ($i = 1; $i -le $n; $i++) {
         for ($j = 1; $j -le $m; $j++) {
-            if ($Antwort[$i - 1] -eq $RichtigeAntwort[$j - 1]) {
-                $cost = 0
-            } else {
-                $cost = 1
-            }
-			# berechnung der minimalen Distanz
-			$loeschen = $d[($i -1), $j] +1
-            $einfuegen = $d[$i, ($j - 1)] +1
-            $ersetzen = $d[($i - 1), ($j - 1)] + $cost
-            $d[$i, $j] = [Math]::Min([Math]::Min($loeschen, $einfuegen), $ersetzen)
+            $Kosten = if ($Antwort[$i - 1] -eq $RichtigeAntwort[$j - 1]) { 0 } else { 1 }
+
+            $Loeschen  = $d[($i - 1), $j] + 1
+            $Einfuegen = $d[$i, ($j - 1)] + 1
+            $Ersetzen  = $d[($i - 1), ($j - 1)] + $Kosten
+
+            $d[$i, $j] = [Math]::Min([Math]::Min($Loeschen, $Einfuegen), $Ersetzen)
         }
     }
 
     return $d[$n, $m]
 }
+
+#===============================================================
+# TODO: Joker-Mechanik ist NOCH nicht implementiert.
+# function Invoke-Joker {
+    # param($Frage)
+# }
